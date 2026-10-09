@@ -1,6 +1,6 @@
-# Astreinte RMM — tableau de bord mobile Datto RMM
+# Datto — tableau de bord mobile du support (Datto RMM)
 
-Application web responsive (PWA) destinée aux techniciens d'astreinte pour superviser
+Application web responsive (PWA) destinée à toute l'équipe support (y compris pendant les astreintes) pour superviser
 les clients depuis un iPhone, en s'appuyant **exclusivement sur l'API officielle Datto RMM**.
 
 > **État actuel : phase 1 — maquette.**

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Astreinte RMM",
-    short_name: "Astreinte",
-    description: "Supervision mobile d'astreinte basée sur l'API Datto RMM.",
+    name: "Datto",
+    short_name: "Datto",
+    description: "Supervision et administration mobile du support via l'API Datto RMM.",
     start_url: "/",
     scope: "/",
     display: "standalone",

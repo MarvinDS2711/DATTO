@@ -8,10 +8,10 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { default: "Astreinte RMM", template: "%s · Astreinte RMM" },
-  description: "Supervision mobile d'astreinte basée sur l'API Datto RMM.",
-  applicationName: "Astreinte RMM",
-  appleWebApp: { capable: true, title: "Astreinte", statusBarStyle: "black-translucent" },
+  title: { default: "Datto", template: "%s · Datto" },
+  description: "Supervision et administration mobile du support via l'API Datto RMM.",
+  applicationName: "Datto",
+  appleWebApp: { capable: true, title: "Datto", statusBarStyle: "black-translucent" },
   robots: { index: false, follow: false },
 };
 

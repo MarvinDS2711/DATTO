@@ -10,7 +10,7 @@ export default async function SitePage({ params }: { params: Promise<{ uid: stri
   const site = await provider.getSite(uid);
   if (!site) notFound();
   const [client, devices] = await Promise.all([provider.getClient(site.clientId), provider.listDevices({ siteUid: uid })]);
-  // Hors ligne d'abord : ce sont eux qui nécessitent une attention en astreinte.
+  // Hors ligne d'abord : ce sont eux qui nécessitent une attention en priorité.
   const sorted = [...devices].sort((a, b) => Number(a.online) - Number(b.online) || a.hostname.localeCompare(b.hostname));
 
   return (

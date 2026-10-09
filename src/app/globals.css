@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Thème sombre unique, pensé pour l'usage nocturne en astreinte. */
+/* Thème sombre unique, pensé pour l'usage de nuit comme de jour. */
 @theme {
   --color-bg: #0b0f17;
   --color-surface: #131a26;

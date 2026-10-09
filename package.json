@@ -1,8 +1,8 @@
 {
-  "name": "datto-astreinte",
+  "name": "datto",
   "version": "0.1.0",
   "private": true,
-  "description": "Tableau de bord mobile d'astreinte basé sur l'API officielle Datto RMM (phase 1 : maquette, données fictives).",
+  "description": "Tableau de bord mobile du support basé sur l'API officielle Datto RMM (phase 1 : maquette, données fictives).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

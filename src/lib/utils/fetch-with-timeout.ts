@@ -2,7 +2,7 @@ import { DattoTimeoutError } from "@/lib/datto/errors";
 
 /**
  * `fetch` avec délai d'expiration. Utilisé par le futur client HTTP Datto pour
- * qu'aucun appel ne reste bloqué pendant une astreinte.
+ * qu'aucun appel ne reste bloqué pendant une intervention.
  */
 export async function fetchWithTimeout(
   input: string | URL,
