@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* Thème sombre unique, pensé pour l'usage de nuit comme de jour. */
+@theme {
+  --color-bg: #0b0f17;
+  --color-surface: #131a26;
+  --color-surface-2: #1b2433;
+  --color-border: #263042;
+  --color-fg: #e6ebf2;
+  --color-muted: #8b97aa;
+  --color-accent: #4f8cff;
+  --color-critical: #ff4d5e;
+  --color-high: #ff9f43;
+  --color-moderate: #f5c542;
+  --color-low: #4fb3ff;
+  --color-info: #8b97aa;
+  --color-ok: #2ecc71;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
