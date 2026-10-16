@@ -13,6 +13,8 @@ const envSchema = z
     DATTO_API_KEY: z.string().optional(),
     DATTO_API_SECRET: z.string().optional(),
     DATTO_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(15000),
+    APP_ACCESS_USER: z.string().min(1).default("support"),
+    APP_ACCESS_PASSWORD: z.string().optional(),
     SESSION_SECRET: z.string().optional(),
     SESSION_MAX_AGE_SECONDS: z.coerce.number().int().positive().default(28800),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
@@ -24,11 +26,11 @@ const envSchema = z
         ctx.addIssue({ code: "custom", path: [key], message: `${key} est requis quand DATTO_MODE=datto` });
       }
     }
-    if (!env.SESSION_SECRET || env.SESSION_SECRET.length < 32) {
+    if (!env.APP_ACCESS_PASSWORD || env.APP_ACCESS_PASSWORD.length < 12) {
       ctx.addIssue({
         code: "custom",
-        path: ["SESSION_SECRET"],
-        message: "SESSION_SECRET (32 caractères min.) est requis quand DATTO_MODE=datto",
+        path: ["APP_ACCESS_PASSWORD"],
+        message: "APP_ACCESS_PASSWORD (12 caractères min.) est requis quand DATTO_MODE=datto",
       });
     }
   });

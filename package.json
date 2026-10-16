@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "datto:check": "node --env-file=.env.local scripts/datto-check.mjs"
   },
   "engines": {
     "node": ">=20.9"

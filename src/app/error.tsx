@@ -6,7 +6,8 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
       <h1 className="text-2xl font-bold">Erreur</h1>
       <p className="mt-2 text-muted">
         Impossible de charger les données.{" "}
-        {error.name === "DattoNotImplementedError" ? "Le connecteur Datto n'est pas encore implémenté." : ""}
+        Le détail est affiché dans le terminal du serveur ; lancez aussi <code>npm run datto:check</code> pour tester
+        la connexion à Datto RMM.
       </p>
       {error.digest && <p className="mt-1 text-xs text-muted">Référence : {error.digest}</p>}
       <button

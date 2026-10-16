@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { DattoNotImplementedError, DattoTimeoutError } from "@/lib/datto/errors";
+import { DattoHttpError, DattoNotImplementedError, DattoTimeoutError } from "@/lib/datto/errors";
 
 /** Réponse JSON incluant toujours la source des données (mock / datto). */
 export function json<T>(data: T, source: string, init?: ResponseInit) {
@@ -14,6 +14,10 @@ export function errorResponse(error: unknown) {
   }
   if (error instanceof DattoTimeoutError) {
     return NextResponse.json({ error: "Datto RMM ne répond pas (délai dépassé)." }, { status: 504 });
+  }
+  if (error instanceof DattoHttpError) {
+    // Messages rédigés par l'application : aucun contenu de réponse Datto n'est relayé.
+    return NextResponse.json({ error: error.message }, { status: error.status === 429 ? 429 : 502 });
   }
   console.error("Erreur API interne", error instanceof Error ? error.name : "unknown");
   return NextResponse.json({ error: "Erreur interne." }, { status: 500 });

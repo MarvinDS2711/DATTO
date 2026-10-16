@@ -3,10 +3,12 @@
 Application web responsive (PWA) destinée à toute l'équipe support (y compris pendant les astreintes) pour superviser
 les clients depuis un iPhone, en s'appuyant **exclusivement sur l'API officielle Datto RMM**.
 
-> **État actuel : phase 1 — maquette.**
-> Toutes les données affichées sont **fictives** (bandeau jaune « MAQUETTE » sur chaque page).
-> L'API Datto RMM **n'est pas connectée** et **aucune action n'est exécutée** sur des machines.
-> Aucune fonctionnalité Datto n'est présentée comme opérationnelle.
+> **État actuel : phase 1.**
+> - Par défaut (`DATTO_MODE=mock`) : données **fictives** (bandeau jaune « MAQUETTE »).
+> - En `DATTO_MODE=datto` : **lecture seule** des sites, appareils et alertes via l'API
+>   officielle (bandeau bleu « données réelles »). Implémenté d'après la documentation,
+>   **à valider sur un compte réel** — voir « Tester avec la vraie API ».
+> - **Aucune action n'est exécutée** sur des machines ni dans Datto : seules des requêtes GET sont envoyées.
 
 ## Stack
 
@@ -35,9 +37,41 @@ npm run dev                  # http://localhost:3000
 | `npm test`          | tests unitaires et composants (Vitest) |
 | `npm run lint`      | ESLint                                 |
 | `npm run typecheck` | vérification TypeScript                |
+| `npm run datto:check` | diagnostic de connexion Datto (lecture seule) |
 
 Pour tester sur iPhone en local : `npm run dev -- -H 0.0.0.0`, puis ouvrir `http://<ip-du-poste>:3000`
 depuis le téléphone sur le même réseau.
+
+## Tester avec la vraie API (lecture seule)
+
+1. **Créer un utilisateur API dédié** dans Datto RMM, avec un rôle aux droits minimaux
+   (lecture), puis activer l'accès API (Setup → Global Settings → Access Control) et
+   générer sa clé et son secret (fiche utilisateur → API Keys).
+2. **Repérer l'URL API de votre plateforme**, affichée au même endroit, de la forme
+   `https://<plateforme>-api.centrastage.net`.
+3. Dans `.env.local` **sur votre poste** (jamais dans git, jamais dans un chat) :
+   ```bash
+   DATTO_MODE=datto
+   DATTO_API_URL=https://<plateforme>-api.centrastage.net
+   DATTO_API_KEY=...
+   DATTO_API_SECRET=...
+   APP_ACCESS_PASSWORD=...   # au moins 12 caractères, demandé par le navigateur
+   ```
+4. **Diagnostic** : `npm run datto:check`. Le script obtient un jeton puis lit la première
+   page des sites, appareils et alertes. Il n'affiche que des compteurs et les **noms** des
+   champs reçus (aucun nom de client, aucune valeur) : vous pouvez copier sa sortie pour
+   ajuster la conversion des données.
+5. **Lancer l'application** : `npm run dev`, puis http://localhost:3000. Le navigateur
+   demande l'identifiant `support` (ou `APP_ACCESS_USER`) et `APP_ACCESS_PASSWORD`.
+
+Précautions :
+- Restez sur `localhost` de préférence. Avec `-H 0.0.0.0` (test sur iPhone), le mot de passe
+  circule **en clair sur le Wi-Fi** (HTTP) : seulement sur un réseau de confiance.
+- Ne déployez pas cette version sur Internet : le contrôle d'accès HTTP Basic est une
+  protection provisoire, sans limitation des tentatives. L'authentification complète
+  arrive en phase 2.
+- Datto RMM n'a pas de niveau « client » au-dessus des sites : en mode réel, **un site = un client**.
+- Les listes sont mises en cache 30 s côté serveur (limite Datto : 600 lectures / minute).
 
 ## Architecture
 
@@ -58,14 +92,19 @@ src/
     datto/                   Couche d'abstraction Datto
       types.ts               Modèle de domaine + interface DattoProvider
       mock-provider.ts       Données fictives (aucun appel réseau)
-      http-provider.ts       Squelette du client API officiel — NON implémenté
+      http-provider.ts       Client API officiel v2, lecture seule (OAuth, pagination, cache)
+      mapping.ts             Conversion réponses Datto → modèle de domaine
+      query.ts               Filtres, tri, résumé, recherche communs
       index.ts               getDattoProvider() selon DATTO_MODE
     interventions/           Catalogue d'actions prédéfinies + validation des paramètres
     auth/permissions.ts      Rôles et permissions vérifiés côté serveur
+    auth/basic-auth.ts       Contrôle d'accès provisoire (mode datto)
     audit/                   Journal d'audit JSON avec masquage des secrets
     api/respond.ts           Réponses JSON / erreurs sans fuite d'informations internes
     utils/                   fetchWithTimeout, formatage
+  proxy.ts                   Exige un identifiant dès que DATTO_MODE=datto
   mocks/data.ts              Données fictives (ids « mock-* », clients « Démo – … »)
+scripts/datto-check.mjs      Diagnostic de connexion Datto (npm run datto:check)
 tests/                       Tests Vitest
 ```
 
@@ -91,14 +130,12 @@ formulaires `GET` qui fonctionnent sans JavaScript client.
 
 ### À faire avant toute connexion réelle (phase 2)
 
-- **Authentification de l'application** (aujourd'hui : utilisateur de démonstration en
-  lecture seule). Sessions signées/chiffrées (`SESSION_SECRET`), cookies `HttpOnly`,
-  `Secure`, `SameSite=Strict`, MFA recommandée, protection CSRF sur les `POST`.
-  **Ne pas déployer avec `DATTO_MODE=datto` tant que ce n'est pas fait** : les routes
-  `GET /api/*` ne sont pas encore protégées.
-- Implémenter `HttpDattoProvider` d'après la documentation officielle Datto RMM
-  (jeton OAuth, endpoints, pagination, limites de débit) avec un compte API dédié aux
-  droits minimaux, puis tester avec un accès autorisé.
+- **Authentification de l'application** (aujourd'hui : HTTP Basic provisoire en mode
+  datto). Sessions signées/chiffrées (`SESSION_SECRET`), cookies `HttpOnly`, `Secure`,
+  `SameSite=Strict`, MFA recommandée, limitation des tentatives, protection CSRF sur les `POST`.
+  **Ne pas déployer sur Internet tant que ce n'est pas fait.**
+- Valider la lecture seule sur un compte réel (`npm run datto:check`) et ajuster la
+  conversion des champs si besoin.
 - Correspondance « client » ↔ « site » Datto à confirmer.
 - Activer les interventions une par une (statut `enabled`) uniquement après vérification,
   avec écran de confirmation pour redémarrage et modification AD, et suivi du statut des jobs.
@@ -110,11 +147,13 @@ Voir [`.env.example`](./.env.example). Aucune vraie clé n'est versionnée ;
 
 | Variable                  | Rôle                                           |
 | ------------------------- | ---------------------------------------------- |
-| `DATTO_MODE`              | `mock` (défaut) ou `datto` (non implémenté)    |
+| `DATTO_MODE`              | `mock` (défaut) ou `datto` (lecture seule)     |
 | `DATTO_API_URL`           | URL API de la plateforme Datto RMM             |
 | `DATTO_API_KEY`           | clé API (serveur uniquement)                   |
 | `DATTO_API_SECRET`        | secret API (serveur uniquement)                |
 | `DATTO_TIMEOUT_MS`        | délai max d'un appel Datto (défaut 15000)      |
+| `APP_ACCESS_USER`         | identifiant d'accès en mode datto (`support`)  |
+| `APP_ACCESS_PASSWORD`     | mot de passe d'accès, ≥ 12 car. (mode datto)   |
 | `SESSION_SECRET`          | secret des sessions, ≥ 32 caractères (phase 2) |
 | `SESSION_MAX_AGE_SECONDS` | durée de session (défaut 28800)                |
 | `LOG_LEVEL`               | `debug` / `info` / `warn` / `error`            |

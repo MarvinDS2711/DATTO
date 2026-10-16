@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { BottomNav } from "@/components/BottomNav";
-import { MockBanner } from "@/components/MockBanner";
+import { LiveBanner, MockBanner } from "@/components/MockBanner";
 import { getDattoProvider } from "@/lib/datto";
 import "./globals.css";
 
@@ -35,7 +35,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="fr">
       <body className="min-h-dvh antialiased">
-        {provider.source === "mock" && <MockBanner />}
+        {provider.source === "mock" ? <MockBanner /> : <LiveBanner />}
         <main className="mx-auto max-w-xl pb-28">{children}</main>
         <BottomNav criticalCount={criticalCount} />
       </body>

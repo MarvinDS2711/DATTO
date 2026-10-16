@@ -4,13 +4,15 @@ import { HttpDattoProvider } from "./http-provider";
 import { MockDattoProvider } from "./mock-provider";
 import type { DattoProvider } from "./types";
 
-let provider: DattoProvider | undefined;
+// Stocké sur globalThis : Next peut charger ce module dans plusieurs contextes,
+// or le jeton OAuth et le cache doivent être partagés (limites de débit Datto).
+const globalForDatto = globalThis as typeof globalThis & { __dattoProvider?: DattoProvider };
 
 /** Point d'entrée unique côté serveur pour accéder aux données Datto. */
 export function getDattoProvider(): DattoProvider {
-  if (provider) return provider;
+  if (globalForDatto.__dattoProvider) return globalForDatto.__dattoProvider;
   const env = getServerEnv();
-  provider =
+  const provider =
     env.DATTO_MODE === "datto"
       ? new HttpDattoProvider({
           apiUrl: env.DATTO_API_URL!,
@@ -19,6 +21,7 @@ export function getDattoProvider(): DattoProvider {
           timeoutMs: env.DATTO_TIMEOUT_MS,
         })
       : new MockDattoProvider();
+  globalForDatto.__dattoProvider = provider;
   return provider;
 }
 
